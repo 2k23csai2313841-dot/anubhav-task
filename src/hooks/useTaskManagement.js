@@ -1,30 +1,31 @@
-import { useState, useCallback } from "react";
+import { useRef, useCallback, useState } from "react";
 import { apiClient } from "../utils/api";
 
 export const useTaskManagement = () => {
   const [tasksCache, setTasksCache] = useState({});
+  const loadingRef = useRef(new Set()); // prevent duplicate active requests
 
-  const fetchTasks = useCallback(
-    async (dateKey) => {
-      if (tasksCache[dateKey]) {
-        return tasksCache[dateKey];
-      }
+  const fetchTasks = useCallback(async (dateKey) => {
+    // ✔ already cached → do NOT request
+    if (tasksCache[dateKey]) return tasksCache[dateKey];
 
-      const tasks = await apiClient.fetchTasks(dateKey);
-      setTasksCache((prev) => ({ ...prev, [dateKey]: tasks }));
-      return tasks;
-    },
-    [tasksCache]
-  );
+    // ✔ prevent parallel duplicate fetch calls
+    if (loadingRef.current.has(dateKey)) return;
+
+    loadingRef.current.add(dateKey);
+
+    const tasks = await apiClient.fetchTasks(dateKey);
+
+    setTasksCache(prev => ({ ...prev, [dateKey]: tasks }));
+    loadingRef.current.delete(dateKey);
+
+    return tasks;
+  }, [tasksCache]);
 
   const saveTasks = useCallback(async (dateKey, tasks) => {
-    setTasksCache((prev) => ({ ...prev, [dateKey]: tasks }));
+    setTasksCache(prev => ({ ...prev, [dateKey]: tasks }));
     await apiClient.saveTasks(dateKey, tasks);
   }, []);
 
-  const updateTasksCache = useCallback((dateKey, tasks) => {
-    setTasksCache((prev) => ({ ...prev, [dateKey]: tasks }));
-  }, []);
-
-  return { fetchTasks, saveTasks, updateTasksCache, tasksCache };
+  return { fetchTasks, saveTasks, tasksCache };
 };
