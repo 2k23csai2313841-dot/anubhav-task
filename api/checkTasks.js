@@ -8,22 +8,34 @@ export default async function handler(req, res) {
     const today = new Date();
     const dateKey = `${today.getDate()}-${today.getMonth()}-${today.getFullYear()}`;
 
-    // Warm Render (because Render sleeps)
+    // Warm Render
     await axios.get(`${backendURL}/${USER_ID}/${dateKey}`).catch(() => {});
 
-    // Try again (actual request)
+    // Fetch tasks
     const response = await axios.get(`${backendURL}/${USER_ID}/${dateKey}`);
     const tasks = response?.data?.tasks || [];
 
-    if (tasks.every(t => t.done)) {
+    // Find incomplete tasks
+    const pendingTasks = tasks.filter(t => !t.done);
+
+    if (pendingTasks.length === 0) {
       return res.status(200).json({ message: "🎉 No email needed. All tasks complete." });
     }
+
+    // Format HTML list
+    const taskListHTML = pendingTasks.map(t => `<li>➡️ ${t.text}</li>`).join("");
 
     await axios.post("https://mail-api-iuw1zw.fly.dev/sendMail", {
       to: "anubhavsingh2106@gmail.com",
       subject: "⚠ Reminder: Tasks Pending",
       websiteName: "Task Manager",
-      message: `<h3>🚨 You still have pending tasks today!</h3>`
+      message: `
+        <h3>🚨 You still have pending tasks today!</h3>
+        <p><strong>Here is what you missed:</strong></p>
+        <ul>${taskListHTML}</ul>
+        <br/>
+        <p>💪 Finish them before the day ends!</p>
+      `
     });
 
     return res.status(200).json({ message: "📩 Email sent successfully!" });
