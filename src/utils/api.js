@@ -9,8 +9,25 @@ const DEFAULT_TASKS = [
   { text: "Workout", done: false },
 ];
 
+// Helper Function to validate month and year
+const isCurrentMonth = (dateKey) => {
+  const [day, month, year] = dateKey.split("-").map(Number);
+
+  const today = new Date();
+  const currentMonth = today.getMonth() + 1;
+  const currentYear = today.getFullYear();
+
+  return month === currentMonth && year === currentYear;
+};
+
 export const apiClient = {
   async fetchTasks(dateKey) {
+    // 🚫 Stop API call if date is not in current month
+    if (!isCurrentMonth(dateKey)) {
+      console.warn("Access Denied: Only current month allowed.");
+      return DEFAULT_TASKS;
+    }
+
     try {
       const res = await fetch(`${API_URL}/${USER_ID}/${dateKey}`);
       const data = await res.json();
@@ -28,6 +45,8 @@ export const apiClient = {
   },
 
   async initializeTasks(dateKey) {
+    if (!isCurrentMonth(dateKey)) return; // prevent writing old months
+
     try {
       await fetch(API_URL, {
         method: "POST",
@@ -44,6 +63,8 @@ export const apiClient = {
   },
 
   async saveTasks(dateKey, tasks) {
+    if (!isCurrentMonth(dateKey)) return; // prevent saving outside current month
+
     try {
       await fetch(API_URL, {
         method: "POST",
