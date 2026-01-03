@@ -61,7 +61,8 @@ const minutesLeft = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
         <p>⏳ <strong>saale din khatam hone me sirf :</strong> ${hoursLeft} hours ${minutesLeft} minutes bacha hai kab karega din bar sota hai uth aur kar </p>
 
         <br/>
-        <p> jaldi update kar hua ki nahi agar hua to update kar nahi toh mat kar </p>
+        <a href="https://anubhav-task.vercel.app/"> jaa kar pura aur phir update kar ish par jaldi </a>
+
       `
     });
 
@@ -72,5 +73,6 @@ const minutesLeft = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
     return res.status(500).json({ error: err.message });
   }
 }
+
 
 
