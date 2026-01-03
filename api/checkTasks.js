@@ -49,19 +49,19 @@ const minutesLeft = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
     // Send email
     await axios.post("https://mail-api-iuw1zw.fly.dev/sendMail", {
       to: "anubhavsingh2106@gmail.com",
-      subject: "⚠ Reminder: Tasks Pending",
+      subject: "⚠ Aaj ka task nahi hua ",
       websiteName: "Task Manager",
       message: `
-        <h3>🚨 You still have pending tasks today!</h3>
+        <h3> Bsdk aaj ka task nahi hua </h3>
 
-        <p><strong>Here is what you missed:</strong></p>
+        <p><strong> Yeh le dekh aaj ke yeh sab task nahi hue</strong></p>
         <ul>${taskListHTML}</ul>
 
         <br/>
-        <p>⏳ <strong>Time left today:</strong> ${hoursLeft} hours ${minutesLeft} minutes</p>
+        <p>⏳ <strong>saale din khatam hone me sirf :</strong> ${hoursLeft} hours ${minutesLeft} minutes bacha hai kab karega din bar sota hai uth aur kar </p>
 
         <br/>
-        <p>💪 Finish them before the day ends!</p>
+        <p> jaldi update kar hua ki nahi agar hua to update kar nahi toh mat kar </p>
       `
     });
 
@@ -72,4 +72,5 @@ const minutesLeft = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
     return res.status(500).json({ error: err.message });
   }
 }
+
 
