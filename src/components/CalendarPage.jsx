@@ -17,22 +17,19 @@ export const CalendarPage = ({ onLogout }) => {
   const totalDays = getDaysInMonth(currentDate);
   const firstDay = new Date(year, month, 1).getDay();
 
-  // Preload all tasks for the month
+  // Load task status for today only - lazy load on demand
   useEffect(() => {
-    const preloadMonth = async () => {
-      setIsLoading(true);
-      const newCache = {};
-      for (let day = 1; day <= totalDays; day++) {
-        const key = getDateKey(day, month, year);
-        const tasks = await fetchTasks(key);
-        newCache[key] = tasks;
+    const loadTodayStatus = async () => {
+      const todayKey = getDateKey(todayDate.getDate(), todayDate.getMonth(), todayDate.getFullYear());
+      if (!monthlyDataCache[todayKey]) {
+        const tasks = await fetchTasks(todayKey);
+        setMonthlyDataCache(prev => ({ ...prev, [todayKey]: tasks }));
       }
-      setMonthlyDataCache(newCache);
       setIsLoading(false);
     };
 
-    preloadMonth();
-  }, [month, year, fetchTasks, totalDays]);
+    loadTodayStatus();
+  }, []);
 
   const handlePrevMonth = () => {
     setCurrentDate(new Date(year, month - 1));
@@ -42,7 +39,13 @@ export const CalendarPage = ({ onLogout }) => {
     setCurrentDate(new Date(year, month + 1));
   };
 
-  const handleDayClick = (day) => {
+  const handleDayClick = async (day) => {
+    // Fetch tasks on demand when day is clicked
+    const key = getDateKey(day, month, year);
+    if (!monthlyDataCache[key]) {
+      const tasks = await fetchTasks(key);
+      setMonthlyDataCache(prev => ({ ...prev, [key]: tasks }));
+    }
     setSelectedDay({ day, month, year });
     setIsModalOpen(true);
   };
