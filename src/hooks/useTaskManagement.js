@@ -1,30 +1,35 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import { apiClient } from "../utils/api";
 
 export const useTaskManagement = () => {
-  const [tasksCache, setTasksCache] = useState({});
+  const cacheRef = useRef({});
 
-  const fetchTasks = useCallback(
-    async (dateKey) => {
-      if (tasksCache[dateKey]) {
-        return tasksCache[dateKey];
-      }
+  const fetchTasks = useCallback(async (dateKey) => {
+    // Check cache first - if exists, return immediately without API call
+    if (cacheRef.current[dateKey]) {
+      return cacheRef.current[dateKey];
+    }
 
-      const tasks = await apiClient.fetchTasks(dateKey);
-      setTasksCache((prev) => ({ ...prev, [dateKey]: tasks }));
-      return tasks;
-    },
-    [tasksCache]
-  );
+    // Make API call only if not in cache
+    const tasks = await apiClient.fetchTasks(dateKey);
+    
+    // Store in cache
+    cacheRef.current[dateKey] = tasks;
+    
+    return tasks;
+  }, []);
 
   const saveTasks = useCallback(async (dateKey, tasks) => {
-    setTasksCache((prev) => ({ ...prev, [dateKey]: tasks }));
+    // Update cache immediately
+    cacheRef.current[dateKey] = tasks;
+    
+    // Then save to API
     await apiClient.saveTasks(dateKey, tasks);
   }, []);
 
   const updateTasksCache = useCallback((dateKey, tasks) => {
-    setTasksCache((prev) => ({ ...prev, [dateKey]: tasks }));
+    cacheRef.current[dateKey] = tasks;
   }, []);
 
-  return { fetchTasks, saveTasks, updateTasksCache, tasksCache };
+  return { fetchTasks, saveTasks, updateTasksCache, tasksCache: cacheRef.current };
 };
