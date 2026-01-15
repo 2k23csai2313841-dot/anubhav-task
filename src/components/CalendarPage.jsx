@@ -69,10 +69,22 @@ export const CalendarPage = ({ onLogout }) => {
     return 'incomplete';
   };
 
+  const isBeforeToday = (day) => {
+    const checkDate = new Date(year, month, day);
+    const today = new Date(todayDate.getFullYear(), todayDate.getMonth(), todayDate.getDate());
+    return checkDate < today;
+  };
+
+  const isAfterToday = (day) => {
+    const checkDate = new Date(year, month, day);
+    const today = new Date(todayDate.getFullYear(), todayDate.getMonth(), todayDate.getDate());
+    return checkDate > today;
+  };
+
   const isToday = (day) => {
     return day === todayDate.getDate() &&
-           month === todayDate.getMonth() &&
-           year === todayDate.getFullYear();
+      month === todayDate.getMonth() &&
+      year === todayDate.getFullYear();
   };
 
   const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
@@ -92,9 +104,9 @@ export const CalendarPage = ({ onLogout }) => {
             className="flex items-center gap-2 px-4 py-2 bg-danger-500 hover:bg-danger-600 text-white rounded-lg font-semibold transition-all duration-300 active:scale-95 shadow-md hover:shadow-lg"
           >
             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
-              <polyline points="16 17 21 12 16 7"/>
-              <line x1="21" y1="12" x2="9" y2="12"/>
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+              <polyline points="16 17 21 12 16 7" />
+              <line x1="21" y1="12" x2="9" y2="12" />
             </svg>
             Logout
           </button>
@@ -136,29 +148,33 @@ export const CalendarPage = ({ onLogout }) => {
           {/* Empty cells for first day offset */}
           <div className="grid grid-cols-7 gap-2 md:gap-3">
             {Array(firstDay).fill(null).map((_, i) => (
-              <div key={`empty-${i}`} className="aspect-square"/>
+              <div key={`empty-${i}`} className="aspect-square" />
             ))}
 
             {/* Days */}
             {Array.from({ length: totalDays }, (_, i) => i + 1).map(day => {
               const status = getDayStatus(day);
               const todayFlag = isToday(day);
+              const beforeToday = isBeforeToday(day);
+              const afterToday = isAfterToday(day);
 
               const baseClasses = "aspect-square rounded-xl cursor-pointer transition-all duration-300 flex flex-col items-center justify-center p-2 font-semibold text-sm md:text-base hover:shadow-lg active:scale-95";
 
               let statusClasses = "";
               if (todayFlag) {
+                // Today - show actual status
                 statusClasses = status === 'completed'
                   ? 'bg-gradient-to-br from-success-500 to-success-600 text-white shadow-lg ring-2 ring-success-300'
                   : 'bg-gradient-to-br from-primary-200 to-primary-300 text-primary-700 shadow-lg ring-2 ring-primary-400';
+              } else if (beforeToday) {
+                // Before today - always green (completed)
+                statusClasses = 'bg-gradient-to-br from-success-500 to-success-600 text-white shadow-md';
+              } else if (afterToday) {
+                // After today - always red (not completed)
+                statusClasses = 'bg-gradient-to-br from-danger-500 to-danger-600 text-white shadow-md';
               } else {
-                if (status === 'completed') {
-                  statusClasses = 'bg-success-100 text-success-600 border-2 border-success-300 hover:bg-success-200';
-                } else if (status === 'incomplete') {
-                  statusClasses = 'bg-danger-50 text-danger-600 border-2 border-danger-300 hover:bg-danger-100';
-                } else {
-                  statusClasses = 'bg-gray-50 text-gray-700 border-2 border-gray-200 hover:bg-gray-100';
-                }
+                // Fallback (shouldn't reach here)
+                statusClasses = 'bg-gray-50 text-gray-700 border-2 border-gray-200 hover:bg-gray-100';
               }
 
               return (
@@ -168,9 +184,9 @@ export const CalendarPage = ({ onLogout }) => {
                   className={`${baseClasses} ${statusClasses}`}
                 >
                   <span>{day}</span>
-                  {status !== 'empty' && (
+                  {!todayFlag && (
                     <span className="text-xs mt-1">
-                      {status === 'completed' ? '✓' : status === 'incomplete' ? '◐' : ''}
+                      {beforeToday ? '✓' : afterToday ? '•' : ''}
                     </span>
                   )}
                 </button>
