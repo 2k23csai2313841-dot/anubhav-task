@@ -92,18 +92,40 @@ const TaskModal = ({ isOpen, onClose, day, month, year, tasks, onTasksUpdate }) 
             </button>
           </div>
 
-          {/* Progress Bar */}
+          {/* Progress Bar Section */}
           {totalCount > 0 && (
-            <div className="mt-4">
-              <div className="flex justify-between text-xs font-semibold mb-2">
-                <span>Progress</span>
-                <span>{completedCount}/{totalCount}</span>
+            <div className="mt-4 space-y-3">
+              <div className="flex justify-between items-center">
+                <span className="text-sm font-semibold">Progress</span>
+                <span className="text-xs font-bold bg-white text-primary-600 px-3 py-1 rounded-full">
+                  {completedCount}/{totalCount}
+                </span>
               </div>
-              <div className="w-full h-2 bg-primary-400 rounded-full overflow-hidden">
+              
+              {/* Animated Progress Bar */}
+              <div className="relative h-3 bg-white/30 rounded-full overflow-hidden shadow-inner">
                 <div
-                  className="h-full bg-success-400 transition-all duration-500"
-                  style={{ width: `${(completedCount / totalCount) * 100}%` }}
-                />
+                  className="h-full bg-gradient-to-r from-success-300 to-success-500 transition-all duration-700 ease-out shadow-lg"
+                  style={{ 
+                    width: `${(completedCount / totalCount) * 100}%`,
+                    boxShadow: 'inset 0 1px 3px rgba(255,255,255,0.3)'
+                  }}
+                >
+                  <div className="h-full bg-gradient-to-r from-transparent to-white/20 animate-pulse"></div>
+                </div>
+              </div>
+
+              {/* Stats */}
+              <div className="flex justify-between text-xs text-primary-100 pt-1">
+                <span>✓ {completedCount} done</span>
+                <span>{totalCount - completedCount} remaining</span>
+              </div>
+
+              {/* Completion Percentage */}
+              <div className="text-center">
+                <span className="text-2xl font-bold text-white">
+                  {Math.round((completedCount / totalCount) * 100)}%
+                </span>
               </div>
             </div>
           )}
@@ -112,41 +134,60 @@ const TaskModal = ({ isOpen, onClose, day, month, year, tasks, onTasksUpdate }) 
         {/* Tasks List */}
         <div className="p-6">
           {taskList.length === 0 ? (
-            <div className="text-center py-8">
-              <p className="text-gray-400 text-lg mb-2">📝 No tasks yet</p>
-              <p className="text-gray-500 text-sm">Add your first task below</p>
+            <div className="text-center py-12">
+              <p className="text-6xl mb-3">📝</p>
+              <p className="text-gray-600 text-lg font-semibold mb-1">No tasks yet</p>
+              <p className="text-gray-500 text-sm">Add your first task to get started</p>
             </div>
           ) : (
-            <div className="space-y-3 mb-6">
+            <div className="space-y-2 mb-6">
               {taskList.map((task, index) => (
                 <div
                   key={index}
-                  className={`flex items-center gap-3 p-3 rounded-lg transition-all duration-300 group ${
+                  className={`flex items-center gap-3 p-4 rounded-xl transition-all duration-300 group border-2 ${
                     task.done
-                      ? 'bg-success-50 border-2 border-success-200'
-                      : 'bg-gray-50 border-2 border-gray-200 hover:border-primary-300'
+                      ? 'bg-gradient-to-r from-success-50 to-green-50 border-success-300 shadow-sm'
+                      : 'bg-gradient-to-r from-gray-50 to-blue-50 border-gray-300 hover:border-primary-400 hover:shadow-md'
                   }`}
                 >
-                  <input
-                    type="checkbox"
-                    checked={task.done}
-                    onChange={() => handleToggleTask(index)}
-                    className="w-5 h-5 rounded cursor-pointer accent-success-500"
-                  />
-                  <span
-                    className={`flex-1 text-sm md:text-base font-medium transition-all ${
+                  {/* Checkbox */}
+                  <button
+                    onClick={() => handleToggleTask(index)}
+                    className={`flex-shrink-0 w-6 h-6 rounded-md border-2 flex items-center justify-center transition-all duration-300 ${
                       task.done
-                        ? 'line-through text-gray-400'
+                        ? 'bg-gradient-to-br from-success-500 to-success-600 border-success-600'
+                        : 'border-gray-400 hover:border-primary-600 hover:bg-primary-50'
+                    }`}
+                  >
+                    {task.done && (
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="20 6 9 17 4 12"/>
+                      </svg>
+                    )}
+                  </button>
+
+                  {/* Task Text */}
+                  <span
+                    className={`flex-1 font-medium transition-all duration-300 ${
+                      task.done
+                        ? 'text-gray-400 line-through'
                         : 'text-gray-700'
                     }`}
                   >
                     {task.text}
                   </span>
+
+                  {/* Delete Button */}
                   <button
                     onClick={() => handleDeleteTask(index)}
-                    className="px-2 py-1 rounded-lg bg-danger-500 hover:bg-danger-600 text-white text-sm font-semibold opacity-0 group-hover:opacity-100 transition-opacity active:scale-95"
+                    className="flex-shrink-0 p-2 text-danger-500 hover:text-danger-600 hover:bg-danger-100 rounded-lg transition-all duration-300 active:scale-95 opacity-0 group-hover:opacity-100"
                   >
-                    ✕
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="3 6 5 6 21 6"/>
+                      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                      <line x1="10" y1="11" x2="10" y2="17"/>
+                      <line x1="14" y1="11" x2="14" y2="17"/>
+                    </svg>
                   </button>
                 </div>
               ))}
@@ -154,23 +195,24 @@ const TaskModal = ({ isOpen, onClose, day, month, year, tasks, onTasksUpdate }) 
           )}
 
           {/* Add Task Input */}
-          <div className="bg-gradient-to-r from-primary-50 to-primary-100 p-4 rounded-xl border-2 border-primary-200">
+          <div className="bg-gradient-to-br from-primary-50 to-blue-50 p-5 rounded-2xl border-2 border-primary-200 shadow-sm">
+            <label className="block text-xs font-semibold text-primary-700 mb-2">✏️ Add New Task</label>
             <div className="flex flex-col gap-3 md:flex-row md:gap-2">
               <input
                 type="text"
                 value={newTaskText}
                 onChange={(e) => setNewTaskText(e.target.value)}
                 onKeyPress={handleKeyPress}
-                placeholder="Add a new task..."
-                className="flex-1 px-4 py-2 md:py-3 rounded-lg border-2 border-primary-300 focus:outline-none focus:border-primary-600 focus:bg-white transition-all text-sm md:text-base"
+                placeholder="What needs to be done?"
+                className="flex-1 px-4 py-2.5 md:py-3 rounded-lg border-2 border-primary-300 focus:outline-none focus:border-primary-600 focus:bg-white focus:shadow-md transition-all text-sm md:text-base placeholder-gray-400"
               />
               <button
                 onClick={handleAddTask}
                 disabled={newTaskText.trim() === ''}
-                className={`px-4 md:px-6 py-2 md:py-3 rounded-lg font-semibold text-white transition-all active:scale-95 text-sm md:text-base ${
+                className={`px-4 md:px-6 py-2.5 md:py-3 rounded-lg font-semibold text-white transition-all active:scale-95 text-sm md:text-base shadow-md ${
                   newTaskText.trim() === ''
                     ? 'bg-gray-300 cursor-not-allowed'
-                    : 'bg-primary-600 hover:bg-primary-700 shadow-md hover:shadow-lg'
+                    : 'bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 hover:shadow-lg'
                 }`}
               >
                 ➕ Add
@@ -180,12 +222,12 @@ const TaskModal = ({ isOpen, onClose, day, month, year, tasks, onTasksUpdate }) 
         </div>
 
         {/* Footer */}
-        <div className="border-t border-gray-200 p-4 bg-gray-50 rounded-b-2xl">
+        <div className="border-t border-gray-200 p-4 bg-gradient-to-r from-gray-50 to-blue-50 rounded-b-2xl">
           <button
             onClick={handleClose}
-            className="w-full py-3 px-4 bg-danger-500 hover:bg-danger-600 text-white font-semibold rounded-lg transition-all active:scale-95 text-sm md:text-base"
+            className="w-full py-3 px-4 bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800 text-white font-semibold rounded-lg transition-all active:scale-95 text-sm md:text-base shadow-md hover:shadow-lg"
           >
-            Close
+            ✓ Done
           </button>
         </div>
       </div>
