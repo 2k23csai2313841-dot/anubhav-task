@@ -9,6 +9,7 @@ export const CalendarPage = ({ onLogout }) => {
   const [selectedDay, setSelectedDay] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [monthlyDataCache, setMonthlyDataCache] = useState({});
+  const [loadingDates, setLoadingDates] = useState(new Set());
   const [isLoading, setIsLoading] = useState(true);
   const { fetchTasks, saveTasks } = useTaskManagement();
 
@@ -43,8 +44,14 @@ export const CalendarPage = ({ onLogout }) => {
     // Fetch tasks on demand when day is clicked
     const key = getDateKey(day, month, year);
     if (!monthlyDataCache[key]) {
+      setLoadingDates(prev => new Set(prev).add(key));
       const tasks = await fetchTasks(key);
       setMonthlyDataCache(prev => ({ ...prev, [key]: tasks }));
+      setLoadingDates(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(key);
+        return newSet;
+      });
     }
     setSelectedDay({ day, month, year });
     setIsModalOpen(true);
@@ -153,27 +160,35 @@ export const CalendarPage = ({ onLogout }) => {
 
             {/* Days */}
             {Array.from({ length: totalDays }, (_, i) => i + 1).map(day => {
+              const key = getDateKey(day, month, year);
+              const isLoadingThis = loadingDates.has(key);
               const status = getDayStatus(day);
               const todayFlag = isToday(day);
               const beforeToday = isBeforeToday(day);
               const afterToday = isAfterToday(day);
 
-              const baseClasses = "aspect-square rounded-xl cursor-pointer transition-all duration-300 flex flex-col items-center justify-center p-2 font-semibold text-sm md:text-base hover:shadow-lg active:scale-95";
+              const baseClasses = "aspect-square rounded-xl cursor-pointer transition-all duration-300 flex flex-col items-center justify-center p-2 font-semibold text-sm md:text-base hover:shadow-lg active:scale-95 relative overflow-hidden";
 
               let statusClasses = "";
-              if (todayFlag) {
-                // Today - show actual status
-                statusClasses = status === 'completed'
-                  ? 'bg-gradient-to-br from-success-500 to-success-600 text-white shadow-lg ring-2 ring-success-300'
-                  : 'bg-gradient-to-br from-primary-200 to-primary-300 text-primary-700 shadow-lg ring-2 ring-primary-400';
+
+              if (isLoadingThis) {
+                // Skeleton loading state
+                statusClasses = 'bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 animate-pulse';
+              } else if (todayFlag) {
+                // Today - show actual status with special style
+                if (status === 'completed') {
+                  statusClasses = 'bg-gradient-to-br from-yellow-400 to-yellow-500 text-white shadow-lg ring-4 ring-yellow-300 animate-pulse';
+                } else {
+                  statusClasses = 'bg-gradient-to-br from-blue-500 to-blue-600 text-white shadow-lg ring-4 ring-blue-300 animate-pulse';
+                }
               } else if (beforeToday) {
                 // Before today - always green (completed)
-                statusClasses = 'bg-gradient-to-br from-success-500 to-success-600 text-white shadow-md';
+                statusClasses = 'bg-gradient-to-br from-green-500 to-green-600 text-white shadow-md hover:shadow-lg transform hover:scale-105';
               } else if (afterToday) {
                 // After today - always red (not completed)
-                statusClasses = 'bg-gradient-to-br from-danger-500 to-danger-600 text-white shadow-md';
+                statusClasses = 'bg-gradient-to-br from-red-500 to-red-600 text-white shadow-md hover:shadow-lg transform hover:scale-105';
               } else {
-                // Fallback (shouldn't reach here)
+                // Fallback
                 statusClasses = 'bg-gray-50 text-gray-700 border-2 border-gray-200 hover:bg-gray-100';
               }
 
@@ -182,12 +197,25 @@ export const CalendarPage = ({ onLogout }) => {
                   key={day}
                   onClick={() => handleDayClick(day)}
                   className={`${baseClasses} ${statusClasses}`}
+                  disabled={isLoadingThis}
                 >
-                  <span>{day}</span>
-                  {!todayFlag && (
-                    <span className="text-xs mt-1">
-                      {beforeToday ? '✓' : afterToday ? '•' : ''}
-                    </span>
+                  {isLoadingThis ? (
+                    <div className="flex flex-col items-center justify-center w-full h-full">
+                      <div className="w-4 h-4 bg-white rounded-full animate-bounce"></div>
+                    </div>
+                  ) : (
+                    <>
+                      <span>{day}</span>
+                      {todayFlag ? (
+                        <span className="text-xs mt-1 animate-bounce">
+                          {status === 'completed' ? '✓' : '◐'}
+                        </span>
+                      ) : (
+                        <span className="text-xs mt-1">
+                          {beforeToday ? '✓' : afterToday ? '✕' : ''}
+                        </span>
+                      )}
+                    </>
                   )}
                 </button>
               );
