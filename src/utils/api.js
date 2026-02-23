@@ -5,7 +5,6 @@ const USER_ID = "2313841";
 
 const DEFAULT_TASKS = [
   { text: "LeetCode", done: false },
-  { text: "GitHub Contribution", done: false },
   { text: "Workout", done: false },
 ];
 
@@ -69,3 +68,4 @@ export const getDaysInMonth = (date) => {
 export const getFirstDayOfMonth = (date) => {
   return new Date(date.getFullYear(), date.getMonth(), 1).getDay();
 };
+
