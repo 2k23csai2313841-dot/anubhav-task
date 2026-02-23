@@ -8,6 +8,7 @@ const DEFAULT_TASKS = [
   { text: "GitHub Contribution", done: false },
   { text: "Workout", done: false },
 ];
+
 export const apiClient = {
   async fetchTasks(dateKey) {
     try {
@@ -16,29 +17,25 @@ export const apiClient = {
 
       if (!data?.tasks?.length) {
         await this.initializeTasks(dateKey);
-        return DEFAULT_TASKS.map((text) => ({ text, done: false }));
+        return DEFAULT_TASKS;
       }
 
       return data.tasks;
     } catch (err) {
       console.error("Error fetching tasks:", err);
-      return DEFAULT_TASKS.map((text) => ({ text, done: false }));
+      return DEFAULT_TASKS;
     }
   },
 
   async initializeTasks(dateKey) {
     try {
-      const tasksWithDone = DEFAULT_TASKS.map((text) => ({
-        text,
-        done: false,
-      }));
       await fetch(API_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           userId: USER_ID,
           date: dateKey,
-          tasks: tasksWithDone,
+          tasks: DEFAULT_TASKS,
         }),
       });
     } catch (err) {
@@ -68,5 +65,3 @@ export const getDaysInMonth = (date) => {
 export const getFirstDayOfMonth = (date) => {
   return new Date(date.getFullYear(), date.getMonth(), 1).getDay();
 };
-
-
