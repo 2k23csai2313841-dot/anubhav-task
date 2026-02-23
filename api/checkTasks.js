@@ -26,29 +26,32 @@ export default async function handler(req, res) {
 
     // Format HTML list
     const taskListHTML = pendingTasks
-      .map((t) => `<li>➡️ ${t.text}</li>`)
+      .map((t) =>
+        t === "Workout"
+          ? `<li>➡️ tere se aaj workout suru nahi hua mote jaa kar  </li>`
+          : `<li>➡️ ${t.text}</li>`,
+      )
       .join("");
 
     // --- Calculate time remaining today ---
     // Time in IST
-      const nowUTC = new Date();
-      const nowIST = new Date(nowUTC.getTime() + (5.5 * 60 * 60 * 1000));
+    const nowUTC = new Date();
+    const nowIST = new Date(nowUTC.getTime() + 5.5 * 60 * 60 * 1000);
 
-      // End of day in IST (23:59:59)
-      const endOfDayIST = new Date(
-        nowIST.getFullYear(),
-        nowIST.getMonth(),
-        nowIST.getDate(),
-        23,
-        59,
-        59
-      );
+    // End of day in IST (23:59:59)
+    const endOfDayIST = new Date(
+      nowIST.getFullYear(),
+      nowIST.getMonth(),
+      nowIST.getDate(),
+      23,
+      59,
+      59,
+    );
 
-      // Time difference
-      const diffMs = endOfDayIST - nowIST;
-      const hoursLeft = Math.floor(diffMs / (1000 * 60 * 60));
-      const minutesLeft = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
-
+    // Time difference
+    const diffMs = endOfDayIST - nowIST;
+    const hoursLeft = Math.floor(diffMs / (1000 * 60 * 60));
+    const minutesLeft = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
 
     // Send email
     await axios.post("https://mail-api-iuw1zw.fly.dev/sendMail", {
