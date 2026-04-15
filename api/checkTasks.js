@@ -1,4 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
+import axios from "axios";
 
 const supabaseUrl = process.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY;
@@ -90,7 +91,6 @@ export default async function handler(req, res) {
     const minutesLeft = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
 
     // Send email with pending tasks
-    const axios = require("axios");
     await axios.post("https://mail-api-iuw1zw.fly.dev/sendMail", {
       to: "anubhavsingh2106@gmail.com",
       subject: "⚠ Reminder: Tasks Pending",
