@@ -89,12 +89,12 @@ export default async function handler(req, res) {
     const diffMs = endOfDayIST - nowIST;
     const hoursLeft = Math.floor(diffMs / (1000 * 60 * 60));
     const minutesLeft = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
-    const today = new Date();
-     const day = today.getDate(); 
+    const todayFull = new Date();
+     const currentDate = todayFull.getDate(); 
     // Send email with pending tasks
     await axios.post("https://mail-api-iuw1zw.fly.dev/sendMail", {
       to: "anubhavsingh2106@gmail.com",
-      subject: `Final Warning for today ${day}`,
+      subject: `Final Warning for today ${currentDate}`,
       websiteName: "Task Manager",
       message: `
         <h3>🚨Saale aaj ka task nahi hua motee</h3>
