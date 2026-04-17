@@ -14,7 +14,9 @@ const DEFAULT_TASKS = [
 export default async function handler(req, res) {
   try {
     const today = new Date();
-    const dateKey = `${today.getDate()}-${today.getMonth()}-${today.getFullYear()}`;
+   const dateKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(
+      today.getDate(),
+    ).padStart(2, "0")}`;
 
     // Fetch tasks from Supabase
     const { data, error } = await supabase
