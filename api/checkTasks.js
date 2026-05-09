@@ -14,11 +14,11 @@ const DEFAULT_TASKS = [
 export default async function handler(req, res) {
   try {
     const today = new Date();
-   const dateKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(
+    const dateKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(
       today.getDate(),
     ).padStart(2, "0")}`;
 
-    // Fetch tasks from Supabase
+    // Fetch tasks from Supabase using the same YYYY-MM-DD format that the frontend uses
     const { data, error } = await supabase
       .from("tasks")
       .select("*")
@@ -31,7 +31,9 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: "Failed to fetch tasks" });
     }
 
+   
     let tasks = data?.tasks || DEFAULT_TASKS;
+
     let pendingTasks = tasks.filter((t) => !t.done);
 
     // Check if today is Saturday and add LeetCode Contest
@@ -42,18 +44,21 @@ export default async function handler(req, res) {
 
         // Add LeetCode Contest task via Supabase
         const updatedTasks = [...tasks, leetCodeTask];
-        await supabase
-          .from("tasks")
-          .upsert(
-            {
-              user_id: USER_ID,
-              date: dateKey,
-              tasks: updatedTasks,
-              updated_at: new Date().toISOString(),
-            },
-            { onConflict: "user_id,date" },
-          )
-          .catch((err) => console.error("Error adding LeetCode Contest:", err));
+        try {
+          await supabase
+            .from("tasks")
+            .upsert(
+              {
+                user_id: USER_ID,
+                date: dateKey,
+                tasks: updatedTasks,
+                updated_at: new Date().toISOString(),
+              },
+              { onConflict: "user_id,date" },
+            );
+        } catch (err) {
+          console.error("Error adding LeetCode Contest:", err);
+        }
       }
     }
 
@@ -91,12 +96,11 @@ export default async function handler(req, res) {
     const diffMs = endOfDayIST - nowIST;
     const hoursLeft = Math.floor(diffMs / (1000 * 60 * 60));
     const minutesLeft = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
-    const todayFull = new Date();
-     const currentDate = todayFull.getDate(); 
+
     // Send email with pending tasks
     await axios.post("https://mail-api-iuw1zw.fly.dev/sendMail", {
       to: "anubhavsingh2106@gmail.com",
-      subject: `Final Warning for today ${currentDate}`,
+      subject: "⚠ Reminder: Tasks Pending",
       websiteName: "Task Manager",
       message: `
         <h3>🚨Saale aaj ka task nahi hua motee</h3>
